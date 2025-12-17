@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "../supabase-client";
+import { Session } from "@supabase/supabase-js";
 
 interface Task {
   id: number,
@@ -10,14 +11,14 @@ interface Task {
   created_at: string
 }
 
-const TaskManager = () => {
+const TaskManager = ({ session }: { session: Session }) => {
   const [newTask, setNewTask] = useState({ title: "", description: "" });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newDescription, setNewDescription] = useState("");
 
   useEffect(() => {
     fetchTasks();
-  }, [tasks])
+  }, [])
 
   const fetchTasks = async () => {
     const { error, data } = await supabase.from("tasks")
@@ -27,7 +28,6 @@ const TaskManager = () => {
       console.error("ERROR fetching data: ", error.message);
       return;
     }
-
     setTasks(data);
   }
 
@@ -59,7 +59,7 @@ const TaskManager = () => {
     if (!newTask.title.trim() || !newTask.description.trim()) return;
 
     const { error } = await supabase.from("tasks")
-      .insert(newTask).single();
+      .insert({ ...newTask, email: session.user.email })
 
     if (error) {
       console.error("Error Adding data: ", error.message);
@@ -70,8 +70,8 @@ const TaskManager = () => {
   }
 
   return (
-    <div className="">
-      <h1 className="text-2xl font-bold text-center mb-6">Supabase CRUD</h1>
+    <div>
+      <h1 className="text-2xl font-bold text-center my-4">Supabase CRUD</h1>
       <div className="w-80 mx-auto">
 
         {/* form */}
@@ -80,7 +80,7 @@ const TaskManager = () => {
             onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))} />
           <textarea placeholder="task description" className="border-none py-1 pl-2 outline-none ring-1 rounded-md w-full resize-y max-h-32" value={newTask.description}
             onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}></textarea>
-          <button className="cursor-pointer bg-gray-600 py-1 px-3 rounded-sm">Add task</button>
+          <button className="cursor-pointer bg-gray-600 py-1 px-3 rounded-sm font-semibold">Add task</button>
         </form>
       </div>
 

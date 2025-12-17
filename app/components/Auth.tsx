@@ -10,7 +10,6 @@ const Auth = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // console.log({ email, password });
 
     if (isSignUp) {
       const { error: signUpError } = await supabase.auth.signUp({
@@ -40,13 +39,15 @@ const Auth = () => {
   return (
     <form className='max-w-sm mx-auto flex flex-col items-center gap-4'
       onSubmit={handleSubmit}>
-      <h2 className="text-lg font-semibold">{isSignUp ? "Sign Up" : "Sign In"}</h2>
+      <h2 className="text-xl font-semibold mb-2">{isSignUp ? "Sign Up" : "Sign In"}</h2>
       <input type="text" className="border-none py-1 pl-2 outline-none ring-1 rounded-md w-full" placeholder='Email' value={email}
         onChange={(e) => setEmail(e.target.value)} />
       <input type="password" className="border-none py-1 pl-2 outline-none ring-1 rounded-md w-full" placeholder='Password' value={password}
         onChange={(e) => setPassword(e.target.value)} />
-      <button className='cursor-pointer bg-gray-600 py-1 px-3 rounded-sm'>{isSignUp ? "Sign up" : "Sign in"}</button>
-      <button className='cursor-pointer bg-gray-600 py-1 px-3 rounded-sm' onClick={() => setIsSignUp(!isSignUp)}>Swith to {isSignUp ? "Sign in" : "Sign up"}</button>
+      <div className="flex gap-2 mt-2 px-1">
+        <button type="submit" className='cursor-pointer bg-gray-600 py-1 px-3 rounded-sm font-semibold order-2  '>{isSignUp ? "Sign up" : "Sign in"}</button>
+        <button type="button" className='cursor-pointer bg-gray-600 py-1 px-3 rounded-sm font-semibold' onClick={() => setIsSignUp(!isSignUp)}>Swith to {isSignUp ? "Sign in" : "Sign up"}</button>
+      </div>
     </form>
   )
 }
