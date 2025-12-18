@@ -18,6 +18,18 @@ const TaskManager = ({ session }: { session: Session }) => {
 
   useEffect(() => {
     fetchTasks();
+
+    const channel = supabase.channel("tasks-channel")
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "tasks"
+      }, (payload) => {
+        fetchTasks();
+      }).subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    }
+
   }, [])
 
   const fetchTasks = async () => {
@@ -51,20 +63,22 @@ const TaskManager = ({ session }: { session: Session }) => {
       return;
     }
 
-    // setTasks(prev => prev.filter(taskItem => taskItem.id != id))
+    setNewDescription("");
   }
 
   const addTask = async (e: FormEvent) => {
     e.preventDefault();
     if (!newTask.title.trim() || !newTask.description.trim()) return;
 
-    const { error } = await supabase.from("tasks")
-      .insert({ ...newTask, email: session.user.email })
+    const { error, data } = await supabase.from("tasks")
+      .insert({ ...newTask, email: session.user.email }).select();
 
     if (error) {
       console.error("Error Adding data: ", error.message);
       return;
     }
+
+    setTasks(prevTasks => [...prevTasks, data[0]]);
 
     setNewTask({ title: "", description: "" })
   }
@@ -90,7 +104,7 @@ const TaskManager = ({ session }: { session: Session }) => {
           <li key={task.id} className="border-[0.5] py-4 px-12 text-center space-y-3 rounded-md border-gray-600 ">
             <h2 className="font-semibold">{task.title}</h2>
             <p className="text-sm">{task.description}</p>
-            <textarea placeholder="update your description" className="border-none py-1 pl-2 outline-none ring-1 ring-blue-500 placeholder:text-sm rounded-md w-full resize-y max-h-32 max-w-48"
+            <textarea placeholder="update your description" className="border-none py-1 pl-2 outline-none ring-1 ring-blue-500 placeholder:text-sm rounded-md w-full resize-y max-h-32 max-w-48" value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}></textarea>
             <div className="space-x-3">
               <button className="cursor-pointer text-sm bg-gray-700 py-0.5 px-1.5 rounded-sm" onClick={() => updateTask(task.id)}>Edit</button>
